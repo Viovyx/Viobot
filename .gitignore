@@ -1,2 +1,3 @@
-source/__pycache__/
-source/VIOBOT.py
+__pycache__/
+testing/
+.env
