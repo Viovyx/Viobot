@@ -50,7 +50,7 @@ def run_discord_bot(token):
         ],
     )
     async def bday_set(ctx: interactions.CommandContext, date: str):
-        log_command(ctx=ctx, cmd="bday_set")
+        log_command(ctx=ctx, cmd="bday-set")
         try:
             adate = date.split("-")
             if len(adate) == 3:
