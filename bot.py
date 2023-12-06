@@ -1,8 +1,9 @@
 import interactions
+from datetime import datetime
 
 
-def log_command(u, cmd):
-    print(f"{u}(id:{u.id}) used /{cmd}")
+def log_command(ctx, cmd):
+    print(f"{ctx.user}(uid:{ctx.user.id}) used /{cmd} in {ctx.channel}(chid:{ctx.channel_id})(gid:{ctx.guild_id}) at UTC:{datetime.utcnow()}")
 
 
 def run_discord_bot(token):
@@ -32,44 +33,44 @@ def run_discord_bot(token):
         ],
     )
     async def quote(ctx: interactions.CommandContext, text: str, user: interactions.Member):
-        log_command(ctx.user, "quote")
-        await ctx.send(f'"{text}"\t-{user.mention}')
+        log_command(ctx=ctx, cmd="quote")
+        await ctx.send(f'"{text}"\t~{user.mention}')
 
     @bot.command(
-        name="bday",
+        name="bday-set",
         description="Add your birthday to the bot",
         dm_permission=False,
         options=[
             interactions.Option(
-                name="day",
-                description="Enter the day of your bday. e.g. 5 or 10",
-                type=interactions.OptionType.INTEGER,
-                required=True,
-            ),
-            interactions.Option(
-                name="month",
-                description="Enter the month of your bday. e.g. 12 or 4",
-                type=interactions.OptionType.INTEGER,
-                required=True,
-            ),
-            interactions.Option(
-                name="year",
-                description="Enter the year of your bday. e.g. 1995 or 2007",
-                type=interactions.OptionType.INTEGER,
+                name="date",
+                description="YYYY-MM-DD Example: 1992-01-31 or 2005-12-05",
+                type=interactions.OptionType.STRING,
                 required=True,
             ),
         ],
     )
-    async def bday(ctx: interactions.CommandContext, day: int, month: int, year: int):
-        log_command(ctx.user, "bday")
-        # to-do
+    async def bday_set(ctx: interactions.CommandContext, date: str):
+        log_command(ctx=ctx, cmd="bday_set")
+        try:
+            adate = date.split("-")
+            if len(adate) == 3:
+                fdate = datetime(year=int(adate[0]), month=int(adate[1]), day=int(adate[2]))
+                if fdate > datetime.now():
+                    await ctx.send(f"ERROR: Date can't be in the future!", ephemeral=True)
+                else:
+                    await ctx.send(f"Date valid! {fdate}", ephemeral=True)
+            else:
+                await ctx.send(f"ERROR: Make sure you give the year, mont and day!", ephemeral=True)
+        except ValueError:
+            await ctx.send(f"ERROR: Date is invalid!", ephemeral=True)
 
     @bot.command(
         name="ping",
-        description="Test bot latency"
+        description="Test bot latency",
+        dm_permission=False
     )
     async def ping(ctx: interactions.CommandContext):
-        log_command(ctx.user, "ping")
+        log_command(ctx=ctx, cmd="ping")
         await ctx.send(f"Pong! The response time is {bot.latency}ms")
 
     bot.start()
