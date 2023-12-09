@@ -2,5 +2,5 @@ asyncio~=3.4.3
 python-dotenv~=1.0.0
 tinydb~=4.8.0
 python-dateutil~=2.8.2
-discord~=2.3.2
 aioschedule~=0.5.2
+discord-py-interactions~=5.11.0
