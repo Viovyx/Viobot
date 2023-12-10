@@ -71,7 +71,7 @@ if __name__ == '__main__':
     )
     async def quote(ctx: SlashContext, text: str, user: interactions.Member):
         log_command(ctx=ctx, cmd="quote")
-        await ctx.send(f'"{text}"\t~{user.mention}')
+        await ctx.send(f'"{text}" - {user.mention}')
 
 
     @slash_command(
@@ -105,7 +105,7 @@ if __name__ == '__main__':
                             f'Bday succesfully changed for {ctx.user.mention} to {fdate.strftime("%B %d, %Y")}')
                     else:
                         db.insert({
-                            'user': f'{ctx.user}',
+                            'user': f'{ctx.user.username}',
                             'user-id': f'{ctx.user.id}',
                             'bday': f'{fdate}',
                             'last-change-utc': f'{datetime.utcnow()}'
