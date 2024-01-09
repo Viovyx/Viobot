@@ -30,8 +30,11 @@ async def bday_check(bot):
                 await channel.send(f"Happy Birthday to <@{entry.get('user-id')}>! They became {age} years old today 🎉🥳")
             else:
                 print(f"User not found with ID: {entry.get('user-id')}")
-        else:
-            print(f"no bday for {entry.get('user')} today")
+
+        # Debug - (spams console for each user)
+        # else:
+            # print(f"no bday for {entry.get('user')} today")
+
     db.close()
 
 
