@@ -8,6 +8,12 @@ Now has databases in json format for easy access that are used for logs and birt
 - `/quote`
 - `/bday-set`
 - `/bday-show`
+- `/nickname-add`
+- `/nickname-show`
+- `/pair`
+- `/pair-nick`
+- `/partner`
+- `/unpair`
 
 ## In Discord
 ![image](https://cloud.viovyx.com/index.php/s/ENtL8rSaKB85B8Y/download/viobot.png)
