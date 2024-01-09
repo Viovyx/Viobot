@@ -9,6 +9,9 @@ Now has databases in json format for easy access that are used for logs and birt
 - `/bday-set`
 - `/bday-show`
 
+## In Discord
+![image](https://cloud.viovyx.com/index.php/s/ENtL8rSaKB85B8Y/download/viobot.png)
+
 ## How to set up?
 Make sure to have python3 installed and install the `requirements.txt` packages.
 
