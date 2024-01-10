@@ -3,7 +3,7 @@ A Discord bot made with Python mainly used for my private server.
 
 The bot uses TinyDB to create file based databases in readable json format. This makes it easy to manage saved data.
 
-### Current command list:
+## Current command list:
 ##### General Commands
 - `/ping`
 - `/quote`
