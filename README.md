@@ -1,15 +1,19 @@
 # Viobot
-Very basic Discord bot created with Python.
+A Discord bot made with Python mainly used for my private server.
 
-Now has databases in json format for easy access that are used for logs and birthdays!
+The bot uses TinyDB to create file based databases in readable json format. This makes it easy to manage saved data.
 
 ### Current command list:
+##### General Commands
 - `/ping`
 - `/quote`
+##### Bday Commands
 - `/bday-set`
 - `/bday-show`
+##### Nickname Commands
 - `/nickname-add`
 - `/nickname-show`
+##### Pairing Commands
 - `/pair`
 - `/pair-nick`
 - `/partner`
