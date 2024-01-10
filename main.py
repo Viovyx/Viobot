@@ -256,21 +256,24 @@ if __name__ == '__main__':
             db = TinyDB(f'{ROOT_DIR}/db/pairs.json', indent=4, create_dirs=True)
             db.default_table_name = 'pairs'
 
-            if db.search(User['user1-id'] == f'{user1.id}') or db.search(User['user2-id'] == f'{user2.id}'):
-                await ctx.send(f'A pair already exist for either <@{user1.id}> or <@{user2.id}>. Please unpair them first using `/unpair` before attempting to pair!.', ephemeral=True)
-            else:
-                db.insert({
-                    'user1': f'{user1.username}',
-                    'user1-id': f'{user1.id}',
-                    'user2': f'{user2.username}',
-                    'user2-id': f'{user2.id}',
-                    'nickname': f'{nickname}',
-                    'last-change-utc': f'{datetime.utcnow()}'
-                })
-                if nickname:
-                    await ctx.send(f'Pair successfully added for <@{user1.id}> & <@{user2.id}> with nickname "{nickname}"')
+            if user1.id != user2.id:
+                if db.search(User['user1-id'] == f'{user1.id}') or db.search(User['user2-id'] == f'{user2.id}'):
+                    await ctx.send(f'A pair already exist for either <@{user1.id}> or <@{user2.id}>. Please unpair them first using `/unpair` before attempting to pair!.', ephemeral=True)
                 else:
-                    await ctx.send(f'Pair successfully added for <@{user1.id}> & <@{user2.id}>')
+                    db.insert({
+                        'user1': f'{user1.username}',
+                        'user1-id': f'{user1.id}',
+                        'user2': f'{user2.username}',
+                        'user2-id': f'{user2.id}',
+                        'nickname': f'{nickname}',
+                        'last-change-utc': f'{datetime.utcnow()}'
+                    })
+                    if nickname:
+                        await ctx.send(f'Pair successfully added for <@{user1.id}> & <@{user2.id}> with nickname "{nickname}"')
+                    else:
+                        await ctx.send(f'Pair successfully added for <@{user1.id}> & <@{user2.id}>')
+            else:
+                await ctx.send("ERROR: Can't pair a user to themselves!", ephemeral=True)
 
             db.close()
         except Exception as e:
