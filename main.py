@@ -391,4 +391,6 @@ if __name__ == '__main__':
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
 
+    # todo: add dynamicly updated embed thingy for db's
+
     asyncio.run(main())
