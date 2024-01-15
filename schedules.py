@@ -25,7 +25,7 @@ async def bday_check(bot):
         age = (datetime.now() - relativedelta(years=int(bday.strftime('%Y')))).strftime('%Y').replace('0', '')
 
         if bday.strftime('%m-%d') == today.strftime('%m-%d'):
-            print(f"bday today of {entry.get('user')}: {bday}")
+            print(f"bday today of {entry.get('user')}(uid:{entry.get('user-id')}): {bday}")
             if entry.get('user'):
                 await channel.send(f"Happy Birthday to <@{entry.get('user-id')}>! They became {age} years old today 🎉🥳")
             else:
