@@ -33,3 +33,8 @@ BDAY_CHANNEL_ID='<THE CHANNEL-ID FOR BDAY MESSAGES>'
 Make sure to replace the parameters inside `<...>` with your own parameters!
 
 **Any problems? Feel free to contact me on discord: @viovyx**
+
+## TO-DO
+- [ ] add dynamically updated embeds displaying db contents (bdays, nicknames & pairs)
+- [ ] simplify command usage with sub-commands
+- [ ] ...
