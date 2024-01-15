@@ -14,7 +14,7 @@ async def bday_check(bot):
     load_dotenv()
     db = TinyDB(f'{ROOT_DIR}/db/bdays.json', indent=4, create_dirs=True)
     db.default_table_name = 'bdays'
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     channel_id = os.getenv('BDAY_CHANNEL_ID')
     channel = bot.get_channel(channel_id)
