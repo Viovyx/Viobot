@@ -37,4 +37,5 @@ Make sure to replace the parameters inside `<...>` with your own parameters!
 ## TO-DO
 - [ ] add dynamically updated embeds displaying db contents (bdays, nicknames & pairs)
 - [ ] simplify command usage with sub-commands
+- [ ] add auto added and removed bday role
 - [ ] ...
