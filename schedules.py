@@ -41,7 +41,7 @@ async def bday_check(bot):
 async def schedules(bot):
     print("RUNNING: schedules.py")
 
-    schedule.every().day.at("00:01").do(lambda: bday_check(bot))
+    schedule.every().day.at("00:00").do(lambda: bday_check(bot))
 
     # debugging (run every 5sec instead of each day):
     # schedule.every(5).seconds.do(lambda: bday_check(bot))
