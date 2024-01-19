@@ -164,7 +164,8 @@ if __name__ == '__main__':
             for bday in db.all():
                 bday_str = bday['bday']
                 bdate = datetime.strptime(bday_str, '%Y-%m-%d %H:%M:%S')
-                age = (datetime.now() - relativedelta(years=int(bdate.strftime('%Y')))).strftime('%Y').replace('0', '')
+                today = datetime.now()
+                age = today.year - bdate.year - ((today.month, today.day) < (bdate.month, bdate.day))
                 embed.add_field(name=f"{bday['user']}", value=f"{bdate.strftime('%B %d, %Y')} ({age} years old)", inline=False)
             db.close()
         except Exception as e:
