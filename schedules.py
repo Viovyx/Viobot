@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from tinydb import TinyDB, Query
 import os
@@ -27,6 +28,7 @@ async def bday_check(bot):
         if bday.strftime('%m-%d') == today.strftime('%m-%d'):
             print(f"bday today of {entry.get('user')}(uid:{entry.get('user-id')}): {bday}")
             if entry.get('user'):
+                time.sleep(1)
                 await channel.send(f"Happy Birthday to <@{entry.get('user-id')}>! They became {age} years old today 🎉🥳")
             else:
                 print(f"User not found with ID: {entry.get('user-id')}")

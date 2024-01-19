@@ -76,9 +76,10 @@ if __name__ == '__main__':
 
     # Bday Commands
     @slash_command(
-        name="bday-set",
-        description="Add your birthday to the bot",
+        name="bday",
         dm_permission=False,
+        sub_cmd_name="add",
+        sub_cmd_description="Add your birthday",
         options=[
             interactions.SlashCommandOption(
                 name="date",
@@ -88,7 +89,7 @@ if __name__ == '__main__':
             ),
         ],
     )
-    async def bday_set(ctx: SlashContext, date: str):
+    async def bday(ctx: SlashContext, date: str):
         log_command(ctx=ctx, cmd="bday-set")
         try:
             adate = date.split("-")
@@ -119,10 +120,9 @@ if __name__ == '__main__':
             await ctx.send(f"ERROR: Date is invalid", ephemeral=True)
 
 
-    @slash_command(
-        name="bday-show",
-        description="Show someones bday",
-        dm_permission=False,
+    @bday.subcommand(
+        sub_cmd_name="show",
+        sub_cmd_description="Show someones bday",
         options=[
             interactions.SlashCommandOption(
                 name="user",
@@ -153,9 +153,10 @@ if __name__ == '__main__':
 
     # Nickname Commands
     @slash_command(
-        name="nickname-add",
-        description="Add a nickname to a user",
+        name="nickname",
         dm_permission=False,
+        sub_cmd_name="add",
+        sub_cmd_description="Add a nickname to a user",
         options=[
             interactions.SlashCommandOption(
                 name="user",
@@ -171,7 +172,7 @@ if __name__ == '__main__':
             ),
         ],
     )
-    async def nickname_add(ctx: SlashContext, user: interactions.Member, nickname: str):
+    async def nickname(ctx: SlashContext, user: interactions.Member, nickname: str):
         log_command(ctx=ctx, cmd="nickname-add")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/nicknames.json', indent=4, create_dirs=True)
@@ -194,10 +195,9 @@ if __name__ == '__main__':
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
 
-    @slash_command(
-        name="nickname-show",
-        description="Display someones nickname",
-        dm_permission=False,
+    @nickname.subcommand(
+        sub_cmd_name="show",
+        sub_cmd_description="Display the nickname of a user",
         options=[
           interactions.SlashCommandOption(
               name="user",
@@ -227,8 +227,9 @@ if __name__ == '__main__':
     # Pair Commands
     @slash_command(
         name="pair",
-        description="Pair two users together",
         dm_permission=False,
+        sub_cmd_name="add",
+        sub_cmd_description="Add a new pair",
         options=[
             interactions.SlashCommandOption(
                 name="user1",
@@ -280,10 +281,9 @@ if __name__ == '__main__':
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
 
-    @slash_command(
-        name='pair-nick',
-        description='Add or update the nickname of a pair',
-        dm_permission=False,
+    @pair.subcommand(
+        sub_cmd_name="nickname",
+        sub_cmd_description="Add or edit the nickname of a pair",
         options=[
             interactions.SlashCommandOption(
                 name='user',
@@ -316,10 +316,9 @@ if __name__ == '__main__':
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
 
-    @slash_command(
-        name='partner',
-        description='Display the partner of someone',
-        dm_permission=False,
+    @pair.subcommand(
+        sub_cmd_name="partner",
+        sub_cmd_description="Display the partner of a user in a pair",
         options=[
             interactions.SlashCommandOption(
                 name='user',
@@ -358,10 +357,9 @@ if __name__ == '__main__':
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
 
-    @slash_command(
-        name='unpair',
-        description='Unpair a pair of users',
-        dm_permission=False,
+    @pair.subcommand(
+        sub_cmd_name="remove",
+        sub_cmd_description="Remove a pair",
         options=[
             interactions.SlashCommandOption(
               name='user',
