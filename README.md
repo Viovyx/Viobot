@@ -8,16 +8,19 @@ The bot uses TinyDB to create file based databases in readable json format. This
 - `/ping`
 - `/quote`
 ##### Bday Commands
-- `/bday-set`
-- `/bday-show`
+- `/bday add`
+- `/bday show`
+- `/bday list`
 ##### Nickname Commands
-- `/nickname-add`
-- `/nickname-show`
+- `/nickname add`
+- `/nickname show`
+- `/nickname list`
 ##### Pairing Commands
-- `/pair`
-- `/pair-nick`
-- `/partner`
-- `/unpair`
+- `/pair add`
+- `/pair nickname`
+- `/pair partner`
+- `/pair remove`
+- `/pair list`
 
 ## In Discord
 ![image](https://cloud.viovyx.com/index.php/s/ENtL8rSaKB85B8Y/download/viobot.png)
