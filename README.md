@@ -38,8 +38,8 @@ Make sure to replace the parameters inside `<...>` with your own parameters!
 **Any problems? Feel free to contact me on discord: @viovyx**
 
 ## TO-DO
-- [ ] add dynamically updated embeds displaying db contents (bdays, nicknames & pairs)
 - [x] simplify command usage with sub-commands
-- [ ] add auto added and removed bday role
 - [x] add list command for all db's
+- [ ] add dynamically updated embeds displaying db contents (bdays, nicknames & pairs)
+- [ ] add auto added and removed bday role
 - [ ] ...
