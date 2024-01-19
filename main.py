@@ -90,7 +90,7 @@ if __name__ == '__main__':
         ],
     )
     async def bday(ctx: SlashContext, date: str):
-        log_command(ctx=ctx, cmd="bday-set")
+        log_command(ctx=ctx, cmd="bday.set")
         try:
             adate = date.split("-")
             if len(adate) == 3:
@@ -133,7 +133,7 @@ if __name__ == '__main__':
         ],
     )
     async def bday_show(ctx: SlashContext, user: interactions.Member):
-        log_command(ctx=ctx, cmd="bday-show")
+        log_command(ctx=ctx, cmd="bday.show")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/bdays.json', indent=4, create_dirs=True)
             db.default_table_name = 'bdays'
@@ -150,6 +150,27 @@ if __name__ == '__main__':
         except Exception as e:
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
+
+    @bday.subcommand(
+        sub_cmd_name="list",
+        sub_cmd_description="List all birthdays",
+    )
+    async def bday_list(ctx: SlashContext):
+        log_command(ctx=ctx, cmd="bday.list")
+        embed = interactions.Embed(title="All Birthdays:", color="#9b59b6")
+        try:
+            db = TinyDB(f'{ROOT_DIR}/db/bdays.json', indent=4, create_dirs=True)
+            db.default_table_name = 'bdays'
+            for bday in db.all():
+                bday_str = bday['bday']
+                bdate = datetime.strptime(bday_str, '%Y-%m-%d %H:%M:%S')
+                age = (datetime.now() - relativedelta(years=int(bdate.strftime('%Y')))).strftime('%Y').replace('0', '')
+                embed.add_field(name=f"{bday['user']}", value=f"{bdate.strftime('%B %d, %Y')} ({age} years old)", inline=False)
+            db.close()
+        except Exception as e:
+            await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
+            print(e)
+        await ctx.respond(embed=embed)
 
     # Nickname Commands
     @slash_command(
@@ -173,7 +194,7 @@ if __name__ == '__main__':
         ],
     )
     async def nickname(ctx: SlashContext, user: interactions.Member, nickname: str):
-        log_command(ctx=ctx, cmd="nickname-add")
+        log_command(ctx=ctx, cmd="nickname.add")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/nicknames.json', indent=4, create_dirs=True)
             db.default_table_name = 'nicknames'
@@ -208,7 +229,7 @@ if __name__ == '__main__':
         ],
     )
     async def nickname_show(ctx: SlashContext, user: interactions.Member):
-        log_command(ctx=ctx, cmd="nickname-show")
+        log_command(ctx=ctx, cmd="nickname.show")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/nicknames.json', indent=4, create_dirs=True)
             db.default_table_name = 'nicknames'
@@ -223,6 +244,24 @@ if __name__ == '__main__':
         except Exception as e:
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
+
+    @nickname.subcommand(
+        sub_cmd_name="list",
+        sub_cmd_description="List all nicknames",
+    )
+    async def nickname_list(ctx: SlashContext):
+        log_command(ctx=ctx, cmd="nickname.list")
+        embed = interactions.Embed(title="All Nicknames:", color="#9b59b6")
+        try:
+            db = TinyDB(f'{ROOT_DIR}/db/nicknames.json', indent=4, create_dirs=True)
+            db.default_table_name = 'nicknames'
+            for nick in db.all():
+                embed.add_field(name=f"{nick['user']}", value=f"{nick['nickname']}", inline=False)
+            db.close()
+        except Exception as e:
+            await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
+            print(e)
+        await ctx.respond(embed=embed)
 
     # Pair Commands
     @slash_command(
@@ -252,7 +291,7 @@ if __name__ == '__main__':
         ],
     )
     async def pair(ctx: SlashContext, user1: interactions.Member, user2: interactions.Member, nickname=''):
-        log_command(ctx=ctx, cmd="pair")
+        log_command(ctx=ctx, cmd="pair.add")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/pairs.json', indent=4, create_dirs=True)
             db.default_table_name = 'pairs'
@@ -300,7 +339,7 @@ if __name__ == '__main__':
         ],
     )
     async def pair_nick(ctx: SlashContext, user: interactions.Member, nickname: str):
-        log_command(ctx=ctx, cmd="pair-nick")
+        log_command(ctx=ctx, cmd="pair.nickname")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/pairs.json', indent=4, create_dirs=True)
             db.default_table_name = 'pairs'
@@ -329,7 +368,7 @@ if __name__ == '__main__':
         ],
     )
     async def partner(ctx: SlashContext, user:interactions.Member):
-        log_command(ctx=ctx, cmd="partner")
+        log_command(ctx=ctx, cmd="pair.partner")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/pairs.json', indent=4, create_dirs=True)
             db.default_table_name = 'pairs'
@@ -370,7 +409,7 @@ if __name__ == '__main__':
         ],
     )
     async def unpair(ctx: SlashContext, user: interactions.Member):
-        log_command(ctx=ctx, cmd="unpair")
+        log_command(ctx=ctx, cmd="pair.remove")
         try:
             db = TinyDB(f'{ROOT_DIR}/db/pairs.json', indent=4, create_dirs=True)
             db.default_table_name = 'pairs'
@@ -388,5 +427,23 @@ if __name__ == '__main__':
         except Exception as e:
             await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
             print(e)
+
+    @pair.subcommand(
+        sub_cmd_name="list",
+        sub_cmd_description="List all pairs"
+    )
+    async def list_all(ctx: SlashContext):
+        log_command(ctx=ctx, cmd="pair.list")
+        embed = interactions.Embed(title="All Pairs:", color="#9b59b6")
+        try:
+            db = TinyDB(f'{ROOT_DIR}/db/pairs.json', indent=4, create_dirs=True)
+            db.default_table_name = 'pairs'
+            for pair in db.all():
+                embed.add_field(name=f"{pair['user1']} & {pair['user2']}", value=f"Nickname: {pair['nickname']}", inline=False)
+            db.close()
+        except Exception as e:
+            await ctx.send(f"ERROR: Something went wrong", ephemeral=True)
+            print(e)
+        await ctx.respond(embed=embed)
 
     asyncio.run(main())
