@@ -1,13 +1,15 @@
+import os
 import time
 from datetime import datetime
-from tinydb import TinyDB, Query
-import os
-import asyncio
-from dotenv import load_dotenv
+
 import aioschedule as schedule
+import asyncio
 from dateutil.relativedelta import relativedelta
-import interactions
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+from dotenv import load_dotenv
+from tinydb import TinyDB, Query
+
+from shared import ROOT_DIR
+
 User = Query()
 
 
@@ -35,7 +37,7 @@ async def bday_check(bot):
 
         # Debug - (spams console for each user)
         # else:
-            # print(f"no bday for {entry.get('user')} today")
+        # print(f"no bday for {entry.get('user')} today")
 
     db.close()
 
