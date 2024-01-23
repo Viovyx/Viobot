@@ -43,4 +43,5 @@ Make sure to replace the parameters inside `<...>` with your own parameters!
 - [ ] add automatically updated embeds displaying db contents (bdays, nicknames & pairs)
 - [ ] add auto added and removed bday role
 - [ ] sort list command embeds (bdays, nicknames & pairs)
+- [ ] add truth or dare commands with api
 - [ ] ...
