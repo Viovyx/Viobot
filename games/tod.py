@@ -57,6 +57,7 @@ async def play(ctx, rating, game):
         'host': f'{ctx.author.username.removeprefix("@")}',
         'host-id': f'{ctx.author.id}',
         'game-started': 'False',
+        'btn_state': 'disabled',
     })
 
     db.default_table_name = 'game_players'
@@ -132,7 +133,7 @@ async def leave(ctx, continue_game: bool):
 async def start(ctx):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
     db.default_table_name = 'game_settings'
-    db.update({'game-started': 'True'})
+    db.update({'game-started': 'True', 'btn_state': 'enabled'})
     game = (db.search(where('game').exists()))[0]['game']
     player_id = (random.choice(db.table('game_players').all()))['user-id']
     options = None
@@ -210,11 +211,25 @@ async def get(ctx, request):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
     db.default_table_name = 'game_settings'
     if db.get(User['game-started'] == 'True'):
+        db.default_table_name = 'game_players'
+        players = [db.table('game_players').all()[i]['user-id'] for i in range(len(db.table('game_players').all()))]
+        db.default_table_name = 'game_settings'
         rating = (db.search(where('game').exists()))[0]['rating']
         db.default_table_name = 'game_stats'
         player_id = ctx.author.id
 
+        if str(player_id) not in players:
+            await ctx.send("You're not in the game!", ephemeral=True)
+            return
+
         if request != 'continue':
+            db.default_table_name = 'game_settings'
+            btn_state = (db.search(where('btn_state').exists()))[0]['btn_state']
+            if btn_state == 'disabled':
+                await ctx.send("The button has already been pressed! Wait for the game to continue.", ephemeral=True)
+                return
+            db.update({'btn_state': 'disabled'})
+            db.default_table_name = 'game_stats'
             db.update({f'{request}': (db.search(User['user-id'] == f'{player_id}'))[0][f'{request}'] + 1},
                       User['user-id'] == f'{player_id}')
 
@@ -235,6 +250,7 @@ async def get(ctx, request):
                                value=f"{request.replace('truth', 'Truth').replace('dare', 'Dare').replace('nhie', 'Never Have I Ever').replace('wyr', 'Would You Rather').replace('paranoia', 'Paranoia')}",
                                inline=True),
                     EmbedField(name="Rating", value=f"{rating.upper()}", inline=True),
+                    EmbedField(name="Initiated by", value=f"<@{player_id}>", inline=True),
                 ],
             )
             options = ActionRow(
