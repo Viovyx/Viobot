@@ -113,12 +113,17 @@ async def join(ctx):
     db.close()
 
 
-async def leave(ctx):
+async def leave(ctx, continue_game: bool):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
     db.default_table_name = 'game_players'
     if db.search(User['user-id'] == f'{ctx.author.id}'):
         db.remove(User['user-id'] == f'{ctx.author.id}')
         await ctx.send(f"{ctx.author.mention} left the game!")
+        if len(db.all()) == 0:
+            await ctx.send("There are no more players left in the game! Ending game...")
+            await stop(ctx)
+        elif continue_game is True:
+            await get(ctx, 'continue')
     else:
         await ctx.send("You're not in the game!", ephemeral=True)
     db.close()
@@ -128,6 +133,7 @@ async def start(ctx):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
     db.default_table_name = 'game_settings'
     db.update({'game-started': 'True'})
+    game = (db.search(where('game').exists()))[0]['game']
     player_id = (random.choice(db.table('game_players').all()))['user-id']
     await ctx.send(f"Next up is <@{player_id}>!")
     options = None
@@ -176,17 +182,17 @@ async def start(ctx):
             )
     options.add_component(
         Button(
-            label="Pass",
-            custom_id="tod.pass",
+            label="Skip",
+            custom_id="tod.skip",
             style=interactions.ButtonStyle.SECONDARY,
         ),
     )
     embed = Embed(
-        title="Truth or Dare",
-        description=f"It's your turn <@{player_id}>!",
+        title=game,
+        description=f"It's your turn <@{player_id}>! Choose an option to continue the game:",
         color="#9b59b6"
     )
-    await ctx.send(embed=embed, components=[options], ephemeral=True)
+    await ctx.send(embed=embed, components=[options])
     db.close()
 
 
@@ -212,12 +218,17 @@ async def get(ctx, request):
         if request != 'continue':
             db.update({f'{request}': (db.search(User['user-id'] == f'{player_id}'))[0][f'{request}'] + 1},
                       User['user-id'] == f'{player_id}')
-        db.close()
+
+        if request == 'skip':
+            await ctx.send(f"<@{player_id}> skipped!")
 
         if request != 'skip' and request != 'continue':
             response = (getattr(truthordare, request)(rating))['question']
+            db.default_table_name = 'game_settings'
+            game = (db.search(where('game').exists()))[0]['game']
+            db.close()
             embed = Embed(
-                title=f"This one is for {ctx.author.username.removeprefix('@')}!",
+                title=f"{game}",
                 description=f"{response}",
                 color="#9b59b6",
                 fields=[
@@ -234,8 +245,8 @@ async def get(ctx, request):
                     style=interactions.ButtonStyle.PRIMARY,
                 ),
                 Button(
-                    label="Stop",
-                    custom_id="tod.stop",
+                    label="Leave",
+                    custom_id="tod.leave_continue",
                     style=interactions.ButtonStyle.DANGER,
                 ),
             )
@@ -243,7 +254,7 @@ async def get(ctx, request):
         else:
             db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
             db.default_table_name = 'game_players'
-            if len(db.all()) > 1:
+            if db.all() is not None:
                 await start(ctx)
             else:
                 await ctx.send("There are no more players left in the game! Ending game...")

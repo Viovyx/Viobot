@@ -36,7 +36,9 @@ There might still be bugs present that I haven't discovered yet myself, so feel 
 
 ##### Play Commands
 
-- `/play tod`
+- `/play start`
+- `/play stop`
+- `/play players`
 
 ## In Discord
 
