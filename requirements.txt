@@ -4,3 +4,4 @@ tinydb~=4.8.0
 python-dateutil~=2.8.2
 aioschedule~=0.5.2
 discord-py-interactions~=5.11.0
+truthordare.py~=0.0.7
