@@ -14,7 +14,7 @@ class Play(Extension):
         name="play",
         description="Test bot latency",
         dm_permission=False,
-        sub_cmd_name="tod",
+        sub_cmd_name="start",
         sub_cmd_description="Play Truth or Dare or another available game!",
         options=[
             interactions.SlashCommandOption(
@@ -42,8 +42,8 @@ class Play(Extension):
             ),
         ],
     )
-    async def tod(self, ctx: SlashContext, rating: str = "", game: str = "tod"):
-        log_command(ctx=ctx, cmd="play.tod")
+    async def play(self, ctx: SlashContext, rating: str = "", game: str = "tod"):
+        log_command(ctx=ctx, cmd="play.start")
         db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
         db.default_table_name = 'game_settings'
         if len(db.all()) == 0:
@@ -53,7 +53,7 @@ class Play(Extension):
             await ctx.send(f"The last game is still ongoing. Ask <@{host}> to stop it first.", ephemeral=True)
         db.close()
 
-    @tod.subcommand(
+    @play.subcommand(
         sub_cmd_name="stop",
         sub_cmd_description="Stop the current game as host",
     )
@@ -70,7 +70,7 @@ class Play(Extension):
             await ctx.send("No game is currently running!", ephemeral=True)
         db.close()
 
-    @tod.subcommand(
+    @play.subcommand(
         sub_cmd_name="players",
         sub_cmd_description="Show all players in the current game",
     )
@@ -111,10 +111,13 @@ class Play(Extension):
                     else:
                         await btx.send("The game has already started!", ephemeral=True)
                 case "tod.stop":
-                    if db.search(User['game-started'] == 'True'):
-                        await truthordare.stop(btx)
+                    if len(db.all()) != 0:
+                        if db.search(User['host-id'] == f'{btx.author.id}'):
+                            await truthordare.stop(btx)
+                        else:
+                            await btx.send("You're not the host of this game!", ephemeral=True)
                     else:
-                        await btx.send("The game hasn't started yet!", ephemeral=True)
+                        await btx.send("No game is currently running!", ephemeral=True)
 
                 case "tod.truth":
                     await truthordare.get(btx, 'truth') if db.get(User['game-id'] == 'tod') else await btx.send("This button is only available in Truth or Dare!", ephemeral=True)
