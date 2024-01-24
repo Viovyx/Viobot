@@ -135,7 +135,6 @@ async def start(ctx):
     db.update({'game-started': 'True'})
     game = (db.search(where('game').exists()))[0]['game']
     player_id = (random.choice(db.table('game_players').all()))['user-id']
-    await ctx.send(f"Next up is <@{player_id}>!")
     options = None
     match (db.search(where('game-id').exists()))[0]['game-id']:
         case "tod":
