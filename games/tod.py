@@ -223,7 +223,7 @@ async def get(ctx, request):
             await ctx.send(f"<@{player_id}> skipped!")
 
         if request != 'skip' and request != 'continue':
-            response = (getattr(truthordare, request)(rating))['question']
+            response = (getattr(truthordare, request)(rating if rating != 'default' else None))['question']
             db.default_table_name = 'game_settings'
             game = (db.search(where('game').exists()))[0]['game']
             db.close()
