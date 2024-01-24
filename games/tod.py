@@ -67,19 +67,6 @@ async def play(ctx, rating, game):
         'user': f'{ctx.author.username.removeprefix("@")}',
         'user-id': f'{ctx.author.id}',
     })
-    db.default_table_name = 'game_stats'
-    if db.table('game_stats') is not None:
-        db.drop_table('game_stats')
-    db.insert({
-        'user': f'{ctx.author.username.removeprefix("@")}',
-        'user-id': f'{ctx.author.id}',
-        'truth': 0,
-        'dare': 0,
-        'nhie': 0,
-        'wyr': 0,
-        'paranoia': 0,
-        'skip': 0,
-    })
     db.close()
 
     await ctx.send(embed=info_embed, components=[join_menu])
@@ -98,17 +85,6 @@ async def join(ctx):
         db.insert({
             'user': f'{ctx.author.username.removeprefix("@")}',
             'user-id': f'{ctx.author.id}',
-        })
-        db.default_table_name = 'game_stats'
-        db.insert({
-            'user': f'{ctx.author.username.removeprefix("@")}',
-            'user-id': f'{ctx.author.id}',
-            'truth': 0,
-            'dare': 0,
-            'nhie': 0,
-            'wyr': 0,
-            'paranoia': 0,
-            'skip': 0,
         })
         await ctx.send(f"{ctx.author.mention} joined the game!")
     db.close()
@@ -203,7 +179,6 @@ async def stop(ctx):
         f"Game '{(db.search(where('game').exists()))[0]['game']}' ended by {ctx.author.mention}!")
     db.drop_table('game_settings')
     db.drop_table('game_players')
-    db.drop_table('game_stats')
     db.close()
 
 
@@ -215,7 +190,6 @@ async def get(ctx, request):
         players = [db.table('game_players').all()[i]['user-id'] for i in range(len(db.table('game_players').all()))]
         db.default_table_name = 'game_settings'
         rating = (db.search(where('game').exists()))[0]['rating']
-        db.default_table_name = 'game_stats'
         player_id = ctx.author.id
 
         if str(player_id) not in players:
@@ -223,22 +197,17 @@ async def get(ctx, request):
             return
 
         if request != 'continue':
-            db.default_table_name = 'game_settings'
             btn_state = (db.search(where('btn_state').exists()))[0]['btn_state']
             if btn_state == 'disabled':
                 await ctx.send("The button has already been pressed! Wait for the game to continue.", ephemeral=True)
                 return
             db.update({'btn_state': 'disabled'})
-            db.default_table_name = 'game_stats'
-            db.update({f'{request}': (db.search(User['user-id'] == f'{player_id}'))[0][f'{request}'] + 1},
-                      User['user-id'] == f'{player_id}')
 
         if request == 'skip':
             await ctx.send(f"<@{player_id}> skipped!")
 
         if request != 'skip' and request != 'continue':
             response = (getattr(truthordare, request)(rating if rating != 'default' else None))['question']
-            db.default_table_name = 'game_settings'
             game = (db.search(where('game').exists()))[0]['game']
             db.close()
             embed = Embed(
