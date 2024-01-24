@@ -43,7 +43,7 @@ class Tod(Extension):
         ],
     )
     async def tod(self, ctx: SlashContext, rating: str = "", game: str = "tod"):
-        log_command(ctx=ctx, cmd="tod.start")
+        log_command(ctx=ctx, cmd="play.tod")
         await truthordare.play(ctx, rating, game)
 
 
