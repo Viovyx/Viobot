@@ -1,12 +1,13 @@
-import interactions
 import random
-from games import tod
+
+import interactions
 from interactions import Extension, slash_command, SlashContext, SlashCommandChoice
 from interactions.api.events import Component
 from tinydb import TinyDB
-from shared import ROOT_DIR, User
 
 from automations.log import log_command
+from games import tod
+from shared import ROOT_DIR, User
 
 
 class Play(Extension):
@@ -45,11 +46,12 @@ class Play(Extension):
     async def play(self, ctx: SlashContext, rating: str = "", game: str = "tod"):
         log_command(ctx=ctx, cmd="play.start")
         db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-        db.default_table_name = 'game_settings'
-        if len(db.all()) == 0:
+        game_settings = db.table('game_settings')
+
+        if not game_settings.all():
             await tod.play(ctx, rating, game)
         else:
-            host = db.all()[0]['host-id']
+            host = game_settings.all()[0]['host-id']
             await ctx.send(f"The last game is still ongoing. Ask <@{host}> to stop it first.", ephemeral=True)
         db.close()
 
@@ -60,9 +62,10 @@ class Play(Extension):
     async def stop(self, ctx: SlashContext):
         log_command(ctx=ctx, cmd="play.stop")
         db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-        db.default_table_name = 'game_settings'
-        if len(db.all()) != 0:
-            if db.search(User['host-id'] == f'{ctx.author.id}'):
+        game_settings = db.table('game_settings')
+
+        if game_settings.all():
+            if game_settings.search(User['host-id'] == f'{ctx.author.id}'):
                 await tod.stop(ctx)
             else:
                 await ctx.send("You're not the host of this game!", ephemeral=True)
@@ -77,64 +80,67 @@ class Play(Extension):
     async def players(self, ctx: SlashContext):
         log_command(ctx=ctx, cmd="play.players")
         db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-        db.default_table_name = 'game_players'
-        if len(db.all()) == 0:
+        game_players = db.table('game_players')
+
+        players = game_players.all()
+        if not players:
             await ctx.send("No players found!", ephemeral=True)
         else:
             embed = interactions.Embed(title="Players in current game:", color="#9b59b6")
-            for player in db.all():
+            for player in players:
                 embed.add_field(name=f"- {player['user']}", value=" ", inline=False)
             await ctx.send(embed=embed)
-
         db.close()
 
     @interactions.listen(Component)
     async def on_component(self, event: Component):
         btx = event.ctx
         db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-        db.default_table_name = 'game_settings'
+        game_settings = db.table('game_settings')
 
-        if db.table('game_settings') is None:
+        if not game_settings.all():
             await btx.send("No game is currently running!", ephemeral=True)
         else:
-            match btx.custom_id:
-                case "tod.join":
-                    if not db.get(User['game-started'] == 'True'):
+            game_id = game_settings.get(doc_id=1)['game-id']
+            game = game_settings.get(doc_id=1)['game']
+            btn_pressed = btx.custom_id.split('.')[1] if btx.custom_id.split('.')[0] == 'tod' else None
+            match btn_pressed:
+                case "join":
+                    if not game_settings.get(User['game-started'] == 'True'):
                         await tod.join(btx)
                     else:
                         await btx.send("The game has already started!", ephemeral=True)
-                case "tod.leave":
+                case "leave":
                     await tod.leave(btx, False)
-                case "tod.start":
-                    if not db.get(User['game-started'] == 'True'):
-                        await tod.start(btx)
+                case "leave_continue":
+                    await tod.leave(btx, True)
+                case "start":
+                    if game_settings.all():
+                        if not game_settings.get(User['game-started'] == 'True'):
+                            await tod.start(btx)
+                        else:
+                            await btx.send("The game has already started!", ephemeral=True)
                     else:
-                        await btx.send("The game has already started!", ephemeral=True)
-                case "tod.stop":
-                    if len(db.all()) != 0:
-                        if db.search(User['host-id'] == f'{btx.author.id}'):
+                        await btx.send("No game is currently running!", ephemeral=True)
+                case "stop":
+                    if game_settings.all():
+                        if game_settings.search(User['host-id'] == f'{btx.author.id}'):
                             await tod.stop(btx)
                         else:
                             await btx.send("You're not the host of this game!", ephemeral=True)
                     else:
                         await btx.send("No game is currently running!", ephemeral=True)
-
-                case "tod.truth":
-                    await tod.get(btx, 'truth') if db.get(User['game-id'] == 'tod') else await btx.send("This button is only available in Truth or Dare!", ephemeral=True)
-                case "tod.dare":
-                    await tod.get(btx, 'dare') if db.get(User['game-id'] == 'tod') else await btx.send("This button is only available in Truth or Dare!", ephemeral=True)
-                case "tod.random":
-                    await tod.get(btx, f"{random.choice(['truth', 'dare'])}") if db.get(User['game-id'] == 'tod') else await btx.send("This button is only available in Truth or Dare!", ephemeral=True)
-                case "tod.nhie":
-                    await tod.get(btx, 'nhie') if db.get(User['game-id'] == 'nhie') else await btx.send("This button is only available in Never Have I Ever!", ephemeral=True)
-                case "tod.wyr":
-                    await tod.get(btx, 'wyr') if db.get(User['game-id'] == 'wyr') else await btx.send("This button is only available in Would You Rather!", ephemeral=True)
-                case "tod.paranoia":
-                    await tod.get(btx, 'paranoia') if db.get(User['game-id'] == 'paranoia') else await btx.send("This button is only available in Paranoia!", ephemeral=True)
-                case "tod.skip":
-                    await tod.get(btx, 'skip')
-                case "tod.continue":
+                case "continue":
                     await tod.get(btx, 'continue')
-                case "tod.leave_continue":
-                    await tod.leave(btx, True)
+                case "skip":
+                    await tod.get(btx, 'skip')
+                case _:
+                    if (btn_pressed.replace('truth', 'tod').replace('dare', 'tod').replace('random', 'tod')) == game_id:
+                        match btn_pressed:
+                            case "random":
+                                await tod.get(btx, (random.choice(['truth', 'dare'])))
+                            case _:
+                                await tod.get(btx, btn_pressed)
+                    else:
+                        await btx.send(f"This button is not available in {game}!", ephemeral=True)
         db.close()

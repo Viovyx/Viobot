@@ -47,10 +47,11 @@ async def play(ctx, rating, game):
     )
 
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-    db.default_table_name = 'game_settings'
-    if db.table('game_settings') is not None:
-        db.drop_table('game_settings')
-    db.insert({
+    game_settings = db.table('game_settings')
+    game_players = db.table('game_players')
+
+    game_settings.truncate()
+    game_settings.insert({
         'game': f"{game.replace('tod', 'Truth or Dare').replace('nhie', 'Never Have I Ever').replace('wyr', 'Would You Rather').replace('paranoia', 'Paranoia')}",
         'game-id': f'{game}',
         'rating': f'{rating if rating else "default"}',
@@ -58,16 +59,15 @@ async def play(ctx, rating, game):
         'host-id': f'{ctx.author.id}',
         'game-started': 'False',
         'btn_state': 'disabled',
+        'total_players': 1,
+        'current_player': 1,
     })
 
-    db.default_table_name = 'game_players'
-    if db.table('game_players') is not None:
-        db.drop_table('game_players')
-    db.insert({
+    game_players.truncate()
+    game_players.insert({
         'user': f'{ctx.author.username.removeprefix("@")}',
         'user-id': f'{ctx.author.id}',
     })
-    db.close()
 
     await ctx.send(embed=info_embed, components=[join_menu])
     await ctx.send(
@@ -77,26 +77,31 @@ async def play(ctx, rating, game):
 
 async def join(ctx):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-    db.default_table_name = 'game_players'
+    game_players = db.table('game_players')
+    game_settings = db.table('game_settings')
 
-    if db.search(User['user-id'] == f'{ctx.author.id}'):
+    if game_players.search(User['user-id'] == f'{ctx.author.id}'):
         await ctx.send("You're is already in the game!", ephemeral=True)
     else:
-        db.insert({
+        game_players.insert({
             'user': f'{ctx.author.username.removeprefix("@")}',
             'user-id': f'{ctx.author.id}',
         })
+        game_settings.update({'total_players': len(game_players.all())})
         await ctx.send(f"{ctx.author.mention} joined the game!")
     db.close()
 
 
 async def leave(ctx, continue_game: bool):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-    db.default_table_name = 'game_players'
-    if db.search(User['user-id'] == f'{ctx.author.id}'):
-        db.remove(User['user-id'] == f'{ctx.author.id}')
+    game_players = db.table('game_players')
+    game_settings = db.table('game_settings')
+
+    if game_players.search(User['user-id'] == f'{ctx.author.id}'):
+        game_players.remove(User['user-id'] == f'{ctx.author.id}')
+        game_settings.update({'total_players': len(game_players.all())})
         await ctx.send(f"{ctx.author.mention} left the game!")
-        if len(db.all()) == 0:
+        if where('total_players') == 0:
             await ctx.send("There are no more players left in the game! Ending game...")
             await stop(ctx)
         elif continue_game is True:
@@ -108,12 +113,22 @@ async def leave(ctx, continue_game: bool):
 
 async def start(ctx):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-    db.default_table_name = 'game_settings'
-    db.update({'game-started': 'True', 'btn_state': 'enabled'})
-    game = (db.search(where('game').exists()))[0]['game']
-    player_id = (random.choice(db.table('game_players').all()))['user-id']
+    game_settings = db.table('game_settings')
+    game_players = db.table('game_players')
+
+    current_player = game_settings.search(where('current_player').exists())[0]['current_player']
+    if current_player == 1 and game_settings.search(where('game-started').exists())[0]['game-started'] == 'False':
+        game_settings.update({'current_player': random.randint(1, len(game_players.all()))})
+
+    game_settings.update({'game-started': 'True', 'btn_state': 'enabled'})
+
+    game = game_settings.search(where('game').exists())[0]['game']
+    current_player = game_settings.search(where('current_player').exists())[0]['current_player']
+    player_id = game_players.all()[current_player-1]['user-id']
+
+    game_settings.update({'current_player': current_player + 1 if current_player < len(game_players.all()) else 1})
     options = None
-    match (db.search(where('game-id').exists()))[0]['game-id']:
+    match game_settings.search(where('game-id').exists())[0]['game-id']:
         case "tod":
             options = ActionRow(
                 Button(
@@ -174,22 +189,25 @@ async def start(ctx):
 
 async def stop(ctx):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-    db.default_table_name = 'game_settings'
-    await ctx.send(
-        f"Game '{(db.search(where('game').exists()))[0]['game']}' ended by {ctx.author.mention}!")
-    db.drop_table('game_settings')
-    db.drop_table('game_players')
+    game_settings = db.table('game_settings')
+
+    await ctx.send(f"Game '{game_settings.get(where('game').exists())['game']}' ended by {ctx.author.mention}!")
+    game_settings.truncate()
+
+    game_players = db.table('game_players')
+    game_players.truncate()
+
     db.close()
 
 
 async def get(ctx, request):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-    db.default_table_name = 'game_settings'
-    if db.get(User['game-started'] == 'True'):
-        db.default_table_name = 'game_players'
-        players = [db.table('game_players').all()[i]['user-id'] for i in range(len(db.table('game_players').all()))]
-        db.default_table_name = 'game_settings'
-        rating = (db.search(where('game').exists()))[0]['rating']
+    game_settings = db.table('game_settings')
+    game_players = db.table('game_players')
+
+    if game_settings.get(User['game-started'] == 'True'):
+        players = [player['user-id'] for player in game_players.all()]
+        rating = game_settings.get(where('game').exists())['rating']
         player_id = ctx.author.id
 
         if str(player_id) not in players:
@@ -197,19 +215,18 @@ async def get(ctx, request):
             return
 
         if request != 'continue':
-            btn_state = (db.search(where('btn_state').exists()))[0]['btn_state']
+            btn_state = game_settings.get(where('btn_state').exists())['btn_state']
             if btn_state == 'disabled':
                 await ctx.send("The button has already been pressed! Wait for the game to continue.", ephemeral=True)
                 return
-            db.update({'btn_state': 'disabled'})
+            game_settings.update({'btn_state': 'disabled'})
 
         if request == 'skip':
             await ctx.send(f"<@{player_id}> skipped!")
 
         if request != 'skip' and request != 'continue':
-            response = (getattr(truthordare, request)(rating if rating != 'default' else None))['question']
-            game = (db.search(where('game').exists()))[0]['game']
-            db.close()
+            response = getattr(truthordare, request)(rating if rating != 'default' else None)['question']
+            game = game_settings.get(where('game').exists())['game']
             embed = Embed(
                 title=f"{game}",
                 description=f"{response}",
@@ -236,13 +253,10 @@ async def get(ctx, request):
             )
             await ctx.send(embed=embed, components=options)
         else:
-            db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
-            db.default_table_name = 'game_players'
-            if db.all() is not None:
+            if game_players.all():
                 await start(ctx)
             else:
                 await ctx.send("There are no more players left in the game! Ending game...")
                 await stop(ctx)
-            db.close()
     else:
         await ctx.send("There is no game happening currently!", ephemeral=True)
