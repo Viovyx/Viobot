@@ -40,6 +40,10 @@ There might still be bugs present that I haven't discovered yet myself, so feel 
 - `/play stop`
 - `/play players`
 
+##### Clear Commands
+- `/clear all`
+- `/clear amount`
+
 ## In Discord
 
 ![image](https://cloud.viovyx.com/index.php/s/ENtL8rSaKB85B8Y/download/viobot.png)
