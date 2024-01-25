@@ -111,9 +111,7 @@ class Play(Extension):
                     else:
                         await btx.send("The game has already started!", ephemeral=True)
                 case "leave":
-                    await tod.leave(btx, False)
-                case "leave_continue":
-                    await tod.leave(btx, True)
+                    await tod.leave(btx)
                 case "start":
                     if game_settings.all():
                         if not game_settings.get(User['game-started'] == 'True'):

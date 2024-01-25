@@ -92,20 +92,22 @@ async def join(ctx):
     db.close()
 
 
-async def leave(ctx, continue_game: bool):
+async def leave(ctx):
     db = TinyDB(f'{ROOT_DIR}/db/tod.json', indent=4, create_dirs=True)
     game_players = db.table('game_players')
     game_settings = db.table('game_settings')
 
-    if game_players.search(User['user-id'] == f'{ctx.author.id}'):
+    if game_players.contains(User['user-id'] == f'{ctx.author.id}'):
         game_players.remove(User['user-id'] == f'{ctx.author.id}')
         game_settings.update({'total_players': len(game_players.all())})
         await ctx.send(f"{ctx.author.mention} left the game!")
-        if where('total_players') == 0:
+
+        if f'{ctx.author.id}' == game_settings.get(where('host-id').exists())['host-id']:
+            await ctx.send("The host left the game! Ending game...")
+            await stop(ctx)
+        elif not game_players:
             await ctx.send("There are no more players left in the game! Ending game...")
             await stop(ctx)
-        elif continue_game is True:
-            await get(ctx, 'continue')
     else:
         await ctx.send("You're not in the game!", ephemeral=True)
     db.close()
@@ -247,7 +249,7 @@ async def get(ctx, request):
                 ),
                 Button(
                     label="Leave",
-                    custom_id="tod.leave_continue",
+                    custom_id="tod.leave",
                     style=interactions.ButtonStyle.DANGER,
                 ),
             )
