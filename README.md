@@ -44,10 +44,6 @@ There might still be bugs present that I haven't discovered yet myself, so feel 
 - `/clear all`
 - `/clear amount`
 
-## In Discord
-
-![image](https://cloud.viovyx.com/index.php/s/ENtL8rSaKB85B8Y/download/viobot.png)
-
 ## How to set up?
 1) Clone the repository and unpack it.
 
