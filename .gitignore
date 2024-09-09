@@ -2,3 +2,4 @@ __pycache__/
 testing/
 .env
 db/*.json
+.idea/

@@ -102,6 +102,11 @@ async def leave(ctx):
         game_settings.update({'total_players': len(game_players.all())})
         await ctx.send(f"{ctx.author.mention} left the game!")
 
+        current_player = game_settings.search(where('current_player').exists())[0]['current_player']
+        total_players = len(game_players.all())
+        if current_player > total_players:
+            game_settings.update({'current_player': 1})
+
         if f'{ctx.author.id}' == game_settings.get(where('host-id').exists())['host-id']:
             await ctx.send("The host left the game! Ending game...")
             await stop(ctx)
